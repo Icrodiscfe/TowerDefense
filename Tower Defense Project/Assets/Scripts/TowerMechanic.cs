@@ -4,73 +4,40 @@ using UnityEngine;
 
 public class TowerMechanic : MonoBehaviour {
 
-	public List<GameObject> ListOfObjectsInRange = new List<GameObject> ();
-	public List<float> Distances = new List<float> ();
-	public GameObject Target;
-	public float speed;
+	public Transform Rotator;
+	public float RotatorSpeed = 10.0f;
+	public float FireRange = 100.0f;
 
-	Transform Rotator;
-
-	void Start () {
-		Rotator = transform.Find ("Rotator");
-	}
+	GameObject Target;
 
 	void Update() {
 		
-		// Rotator => rotate tower towards target
-		if (Target != null) {
+		if (Target == null) {
+			Target = FindClosestEnemy (FireRange);
+		} else {
 			Vector3 targetDir = Target.transform.position - Rotator.position;
-			float step = speed * Time.deltaTime;
-			Vector3 newDir = Vector3.RotateTowards(Rotator.forward, new Vector3(targetDir.x, 0, targetDir.z), step, 0.0F);
-			Rotator.rotation = Quaternion.LookRotation(newDir);
-		}
-
-		// Set new Target
-		if (ListOfObjectsInRange.Count > 0 && Target == null) {
-			Target = ListOfObjectsInRange [0];
-		}
-
-		// Get all distances
-		Distances.Clear ();
-		foreach (GameObject gameObject in ListOfObjectsInRange) {
-			if (gameObject == null) {
-				ListOfObjectsInRange.Remove (gameObject);
-				return;
-			}
-			Distances.Add ((gameObject.transform.position - transform.position).magnitude);
+			float step = RotatorSpeed * Time.deltaTime;
+			Vector3 newDir = Vector3.RotateTowards (Rotator.forward, new Vector3 (targetDir.x, 0, targetDir.z), step, 0.0F);
+			Rotator.rotation = Quaternion.LookRotation (newDir);
 		}
 	}
 
-	void FixedUpdate()
+	public GameObject FindClosestEnemy(float distance)
 	{
-		
-	}
-
-	//--------------------------------------------------------------
-	void OnTriggerEnter (Collider collider) {
-		if (collider.gameObject.tag == "Enemy")
-			ListOfObjectsInRange.Add (collider.gameObject);
-	}
-
-	void OnTriggerExit (Collider collider) {
-		if (collider.gameObject.tag == "Enemy")
-			ListOfObjectsInRange.Remove (collider.gameObject);
-
-		if (ListOfObjectsInRange.Count == 0)
-			Target = null;
-
-		if (collider.gameObject == Target)
-			Target = null;
+		GameObject[] gos;
+		gos = GameObject.FindGameObjectsWithTag("Enemy");
+		GameObject closest = null;
+		Vector3 position = transform.position;
+		foreach (GameObject go in gos)
+		{
+			Vector3 diff = go.transform.position - position;
+			float curDistance = diff.sqrMagnitude;
+			if (curDistance < distance)
+			{
+				closest = go;
+				distance = curDistance;
+			}
+		}
+		return closest;
 	}
 }
-
-
-
-
-// Raycast
-/*	Vector3 fwd = transform.TransformDirection(Vector3.forward);
-	RaycastHit hit;
-
-	if (Physics.Raycast(transform.position, fwd, out hit, 10))
-		print(hit.collider.gameObject.name);
-*/

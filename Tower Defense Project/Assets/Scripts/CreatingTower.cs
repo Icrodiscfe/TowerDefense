@@ -23,9 +23,11 @@ public class CreatingTower : MonoBehaviour, IPointerDownHandler {
 	void Update() {
 		if (creatingActive) {
 			if (!EventSystem.current.IsPointerOverGameObject ()) {
+				Debug.Log ("Läut");
 				Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 				RaycastHit hit;
-				if (Physics.Raycast (ray, out hit, 9999, LayerMask.GetMask ("Terrain"))) {
+				if (Physics.Raycast (ray, out hit, 9999)) {
+					Debug.DrawLine(ray.origin, hit.point, Color.red);
 					createdObject.transform.position = hit.point;
 					createdObject.SetActive (true);
 				} else {
@@ -56,4 +58,6 @@ public class CreatingTower : MonoBehaviour, IPointerDownHandler {
 
 	// sonst:
 	// Turm mechaniken mpssen während bauphase inaktiv sein.
+
+	//	LayerMask.GetMask ("Environment")
 }

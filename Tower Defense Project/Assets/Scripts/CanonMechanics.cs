@@ -26,8 +26,8 @@ public class CanonMechanics : MonoBehaviour {
 				ListOfObjectsInRange.Remove (gameObject);
 				return;
 			}
-			else
-				fire = this.GetComponentInParent<TowerMechanic> ().Target == gameObject;
+		//	else
+		//		fire = this.GetComponentInParent<TowerMechanic> ().Target == gameObject;
 
 		if (ListOfObjectsInRange.Count == 0)
 			fire = false;
