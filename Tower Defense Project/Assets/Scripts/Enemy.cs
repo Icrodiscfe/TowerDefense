@@ -49,4 +49,8 @@ public class Enemy : MonoBehaviour {
 		else
 			currentHealth = 0f;
 	}
+
+	void OnParticleCollision () {
+		GetDamage (10);
+	}
 }
