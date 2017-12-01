@@ -8,40 +8,56 @@ using UnityEngine.EventSystems;
 
 public class CreatingTower : MonoBehaviour, IPointerDownHandler {
 
-	public GameObject ObjectToBeCreated;	// Object prefab to be created after button press
+	public GameObject 	ObjectToBeCreated;	// Object prefab to be created after button press
 
-	GameObject createdObject;
+	GameObject preObject, createdObject;
 
 	bool creatingActive;
+	int counter;
 
 	public void OnPointerDown (PointerEventData data) {
 		creatingActive = true;
-		createdObject = Instantiate (ObjectToBeCreated);
-		createdObject.SetActive (false);
+		preObject = Instantiate (ObjectToBeCreated);
+		preObject.name += "_preObject";
+		preObject.SetActive (false);
+		preObject.GetComponent<TowerMechanic> ().CreatingModeActive = true;
 	}
 
 	void Update() {
 		if (creatingActive) {
 			if (!EventSystem.current.IsPointerOverGameObject ()) {
-				Debug.Log ("Läut");
 				Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 				RaycastHit hit;
-				if (Physics.Raycast (ray, out hit, 9999)) {
-					Debug.DrawLine(ray.origin, hit.point, Color.red);
-					createdObject.transform.position = hit.point;
-					createdObject.SetActive (true);
+				if (Physics.Raycast (ray, out hit, 9999, LayerMask.NameToLayer ("Enviroment"))) {
+					preObject.transform.position = hit.point;
+					preObject.SetActive (true);
 				} else {
-					createdObject.SetActive (false);
+					preObject.SetActive (false);
 				}
 
-				if (Input.GetKey (KeyCode.Mouse0)) {
+				// Left mouse-klick, Build!
+				if (Input.GetKeyDown (KeyCode.Mouse0) && preObject.GetComponent<TowerMechanic> ().CreatingAllowed) {
+					counter++;
+					createdObject = Instantiate (ObjectToBeCreated, preObject.transform.position, preObject.transform.rotation);
+					createdObject.name += counter.ToString();
 					createdObject = null;
+				}
+
+				// Right mouse-klick, Abbort!
+				if (Input.GetKey (KeyCode.Mouse1)) {
+					if (createdObject != null)
+						Destroy (createdObject);
+					if (preObject != null)
+						Destroy (preObject);
 					creatingActive = false;
 				}
 			}
 		}
 	}
 
+	void Build() {
+
+	}
 
 
 	// Beim drücken auf den button wird der baumodus aktiviert

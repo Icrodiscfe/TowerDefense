@@ -7,6 +7,7 @@ using UnityEngine.AI;
 public class Enemy : MonoBehaviour {
 	public bool DisableAutoMovement = false;
 	public float MaxHealth = 100f;
+
 	float currentHealth;
 	Image Healthbar;
 
@@ -16,13 +17,7 @@ public class Enemy : MonoBehaviour {
 
 		Healthbar = transform.Find ("GUI/Healthbar").GetComponent<Image> ();
 
-		// Auto "Enemy" movement
-		if (!DisableAutoMovement) {
-			NavMeshAgent agent = GetComponent<NavMeshAgent> ();
-			Transform End = GameObject.Find ("End").transform;
-			Vector3 destination = new Vector3 (End.position.x + transform.position.x, End.position.y, End.position.z);
-			agent.destination = destination; 
-		}
+
 	}
 		
 	void Update () {
@@ -41,6 +36,13 @@ public class Enemy : MonoBehaviour {
 		// Destroy
 		if (currentHealth == 0)
 			Destroy (this.gameObject);
+
+		// Auto "Enemy" movement
+		if (!DisableAutoMovement && currentHealth > 0) {
+			NavMeshAgent agent = GetComponent<NavMeshAgent> ();
+			Vector3 destination = new Vector3 (transform.position.x, transform.position.y, transform.position.z + -5);
+			agent.destination = destination; 
+		}
 	}
 
 	public void GetDamage (float amount) {
@@ -50,7 +52,9 @@ public class Enemy : MonoBehaviour {
 			currentHealth = 0f;
 	}
 
-	void OnParticleCollision () {
-		GetDamage (10);
+	void OnParticleCollision (GameObject other) {
+		GetDamage (25);
+		// Finde object -> Partikel System und Stop()
+		other.GetComponent<ParticleSystem>().Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 	}
 }

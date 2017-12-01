@@ -12,7 +12,9 @@ public class SpawnEnemy : MonoBehaviour, IPointerDownHandler {
 
 	public void OnPointerDown (PointerEventData data) {
 		Transform startTransform = ObjectSpawnLocation.transform;
-		Vector3 spawnPosition = new Vector3 (Random.Range (-25f, 25f), startTransform.position.y, startTransform.position.z);
+		Vector3 spawnPosition = new Vector3 (
+			Random.Range (ObjectSpawnLocation.transform.lossyScale.x / 2, ObjectSpawnLocation.transform.lossyScale.x / 2), 
+			startTransform.position.y, startTransform.position.z);
 		Instantiate (ObjectToBeSpawned, spawnPosition, startTransform.rotation);
 	}
 }
