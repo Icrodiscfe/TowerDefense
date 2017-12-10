@@ -8,24 +8,40 @@ using UnityEngine.EventSystems;
 
 public class CreatingTower : MonoBehaviour, IPointerDownHandler {
 
-	public GameObject 	ObjectToBeCreated;	// Object prefab to be created after button press
+	public GameObject ObjectToBeCreated;
+	public Text TextCosts;
+	public int Costs;
 
+	GameControl gameControl;
 	GameObject preObject, createdObject;
 
 	bool creatingActive;
 	int counter;
 
+	void Start () {
+		gameControl = GameObject.Find ("GameControler").GetComponent<GameControl> ();
+	}
+
 	public void OnPointerDown (PointerEventData data) {
-		creatingActive = true;
-		preObject = Instantiate (ObjectToBeCreated);
-		preObject.name += "_preObject";
-		preObject.SetActive (false);
-		preObject.GetComponent<TowerMechanic> ().CreatingModeActive = true;
+		if (this.GetComponent<Button> ().interactable) {
+			if (creatingActive)
+				return;
+			creatingActive = true;
+			preObject = Instantiate (ObjectToBeCreated);
+			preObject.name += "_preObject";
+			preObject.SetActive (false);
+			preObject.GetComponent<TowerMechanic> ().CreatingModeActive = true;
+		}
 	}
 
 	void Update() {
+		TextCosts.text = Costs.ToString();
+
+		this.GetComponent<Button> ().interactable = gameControl.Gold >= Costs;
+
 		if (creatingActive) {
 			if (!EventSystem.current.IsPointerOverGameObject ()) {
+				bool done = false;
 				Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 				RaycastHit hit;
 				if (Physics.Raycast (ray, out hit, 9999, LayerMask.NameToLayer ("Enviroment"))) {
@@ -36,15 +52,17 @@ public class CreatingTower : MonoBehaviour, IPointerDownHandler {
 				}
 
 				// Left mouse-klick, Build!
-				if (Input.GetKeyDown (KeyCode.Mouse0) && preObject.GetComponent<TowerMechanic> ().CreatingAllowed) {
+				if (Input.GetKeyUp (KeyCode.Mouse0) && preObject.GetComponent<TowerMechanic> ().CreatingAllowed) {
 					counter++;
 					createdObject = Instantiate (ObjectToBeCreated, preObject.transform.position, preObject.transform.rotation);
 					createdObject.name += counter.ToString();
 					createdObject = null;
+					done = true;
+					gameControl.Gold -= Costs;
 				}
 
 				// Right mouse-klick, Abbort!
-				if (Input.GetKey (KeyCode.Mouse1)) {
+				if (Input.GetKey (KeyCode.Mouse1) | done) {
 					if (createdObject != null)
 						Destroy (createdObject);
 					if (preObject != null)

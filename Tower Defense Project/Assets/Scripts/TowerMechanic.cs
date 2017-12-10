@@ -4,21 +4,35 @@ using UnityEngine;
 
 public class TowerMechanic : MonoBehaviour {
 
-	public Transform Rotator;
-	public float RotatorSpeed = 10.0f;
-	public float FireRange = 10.0f;
-	public float FireCooldown = 1.0f;
+	[Header("Unity Setup Fields")]
+	public Transform PartToRotateHorizontal;
+	public Transform PartToRotateVertical;
 	public Material BadMat, GoodMat;
-	public bool CreatingModeActive, CreatingAllowed;
+	public Transform FirePoint;
+	public GameObject BulletPrefab;
+
+
+	[Header("Attributes")]
+	public float TurnSpeed = 30f;
+	public float FireRangeMax = 10f;
+	public float FireRangeMin = 2f;
+	public float FireRate = 1f;
+
+	[Header("Scripting Interface")]
+	public bool CreatingModeActive;
+	public bool CreatingAllowed;
 
 	GameObject Target;
-	ParticleSystem particleSystem;
 	bool targeted;
-	Transform rotatorIdleTransform;
+	Quaternion partToRotateHorizontalIdle, partToRotateVerticalIdle;
+	float fireCooldown;
+	Animator anim;
 
 	void Start () {
-		particleSystem = transform.Find ("Head/Particle System").GetComponent<ParticleSystem> ();
-		rotatorIdleTransform = Rotator;
+		partToRotateHorizontalIdle = PartToRotateHorizontal.rotation;
+		partToRotateVerticalIdle = PartToRotateVertical.rotation;
+		anim = GetComponent<Animator> ();
+
 	}
 
 
@@ -26,35 +40,59 @@ public class TowerMechanic : MonoBehaviour {
 		CreatingMode (CreatingModeActive);
 		if (CreatingModeActive)
 			return;
-		
-		Fire ();
 
 		if (Target == null) {
-			Target = FindClosestEnemy (FireRange, "Enemy");
+			Target = FindClosestEnemy (FireRangeMax, "Enemy");
 			targeted = false;
 
-			Vector3 targetDir = new Vector3(rotatorIdleTransform.position.x, rotatorIdleTransform.position.y, rotatorIdleTransform.position.z + 1) - Rotator.position;
-			float step = RotatorSpeed * Time.deltaTime;
-			Vector3 newDir = Vector3.RotateTowards(Rotator.forward, targetDir, step, 0.0F);
-			Debug.DrawRay(Rotator.position, newDir, Color.red);
-			Rotator.rotation = Quaternion.LookRotation(newDir);
+
+			// If no Target, rotate to default position
+			// Get default direction
+			Quaternion lookRotationH = partToRotateHorizontalIdle;
+			Quaternion lookRotationV = partToRotateVerticalIdle;
+			// Rotate Horizontal to Target direction
+			Vector3 rotationH = Quaternion.RotateTowards(PartToRotateHorizontal.rotation, lookRotationH, TurnSpeed * Time.deltaTime).eulerAngles;
+			PartToRotateHorizontal.rotation = Quaternion.Euler (0f, rotationH.y, 0f);
+			// Rotate Vertical to Target direction
+			Vector3 rotationV = Quaternion.RotateTowards(PartToRotateVertical.rotation, lookRotationV, Time.deltaTime * TurnSpeed).eulerAngles;
+			PartToRotateVertical.rotation = Quaternion.Euler (rotationV.x, rotationH.y, 0f);
 		} else {
-			Vector3 targetDir = Target.transform.position - Rotator.position;
-			float step = RotatorSpeed * Time.deltaTime;
-			Vector3 newDir = Vector3.RotateTowards (Rotator.forward, new Vector3 (targetDir.x, 0, targetDir.z), step, 0.0F);
+			// Get Target direction
+			Transform ShootPoint = Target.transform.Find ("ShootPoint").transform;
+			Vector3 dir = Target.transform.position - PartToRotateVertical.position;
+			Quaternion lookRotation = Quaternion.LookRotation (dir);
+			// Rotate Horizontal to Target direction
+			//Vector3 rotationH = Quaternion.Lerp (PartToRotateHorizontal.rotation, lookRotation, Time.deltaTime * TurnSpeed).eulerAngles;
+			Vector3 rotationH = Quaternion.RotateTowards(PartToRotateHorizontal.rotation, lookRotation, Time.deltaTime * TurnSpeed).eulerAngles;
+			PartToRotateHorizontal.rotation = Quaternion.Euler (0f, rotationH.y, 0f);
+			// Rotate Vertical to Target direction
+			Vector3 rotationV = Quaternion.RotateTowards(PartToRotateVertical.rotation, lookRotation, Time.deltaTime * TurnSpeed).eulerAngles;
+			PartToRotateVertical.rotation = Quaternion.Euler (rotationV.x, rotationH.y, 0f);
 
-			// Rotate turret towards Target
-			Rotator.rotation = Quaternion.LookRotation (newDir);
 
-			// Check if turret is already pointing at Target
-			targeted = targetDir == Rotator.transform.forward;
-
-			Ray ray = new Ray(Rotator.position, Rotator.forward);
+			Ray ray = new Ray(FirePoint.position, FirePoint.forward);
 			RaycastHit hit;
+			if (Physics.Raycast (ray, out hit, FireRangeMax))
+				targeted = hit.collider.name.Contains ("Enemy");
 
-			targeted = Physics.Raycast (ray, out hit, FireRange);
-			if (targetDir.magnitude > FireRange)
+
+			if (targeted)
+				Debug.DrawLine (FirePoint.position, hit.point, Color.green);
+			else
+				Debug.DrawLine (FirePoint.position, hit.point, Color.red);
+
+
+
+			if (dir.magnitude > FireRangeMax)
 				Target = null;
+
+
+			if (fireCooldown <= 0f && targeted && dir.magnitude > FireRangeMin && Target != null) {
+				Shoot ();
+				fireCooldown = 1f / FireRate;
+			}
+
+			fireCooldown -= Time.deltaTime;
 		}
 
 	}
@@ -79,30 +117,48 @@ public class TowerMechanic : MonoBehaviour {
 		return closest;
 	}
 
-	float fireCooldown;
-	void Fire () {
-		if (FireCooldown > fireCooldown)
-			fireCooldown += Time.deltaTime;
+	void Shoot () {
+		anim.Play ("MyTurret001Anim001");
+		GameObject bulletGO = (GameObject)Instantiate(BulletPrefab, FirePoint.position, FirePoint.rotation);
+		Bullet bullet = bulletGO.GetComponent<Bullet>();
 
-		if (!particleSystem.isPlaying && FireCooldown <= fireCooldown && targeted) {
-			fireCooldown = 0.0f;
-			particleSystem.Play ();
-		}
-		if (!targeted)
-			particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+		if (bullet != null)
+			bullet.Seek(Target.transform);
 	}
 
+	bool iniCreatingModeDone;
+	List<Material> listMaterials = new List<Material>();
 	void CreatingMode(bool creatingModeactive) {
-		if (creatingModeactive && FindClosestEnemy (0.9f, "Turret") == null) {
-			transform.Find ("Head").GetComponent<MeshRenderer> ().material = GoodMat;
-			transform.Find ("Body").GetComponent<MeshRenderer> ().material = GoodMat;
+		if (!iniCreatingModeDone) {
+			MeshRenderer[] allMeshRenderer = transform.GetComponentsInChildren<MeshRenderer> ();
+			foreach (MeshRenderer meshRen in allMeshRenderer) {
+				listMaterials.Add (meshRen.material);
+			}
+			iniCreatingModeDone = true;
+		}
+
+		if (creatingModeactive && FindClosestEnemy (2.5f, "Turret") == null) {
+			int x = 0;
+			MeshRenderer[] allMeshRenderer = transform.GetComponentsInChildren<MeshRenderer> ();
+			foreach (MeshRenderer meshRen in allMeshRenderer) {
+				meshRen.material = listMaterials[x];
+				x++;
+			}
 			CreatingAllowed = true;
 		}
-		if (creatingModeactive && FindClosestEnemy (0.9f, "Turret") != null) {
-			transform.Find ("Head").GetComponent<MeshRenderer> ().material = BadMat;
-			transform.Find ("Body").GetComponent<MeshRenderer> ().material = BadMat;
+
+		if (creatingModeactive && FindClosestEnemy (2.5f, "Turret") != null) {
+			MeshRenderer[] allMeshRenderer = transform.GetComponentsInChildren<MeshRenderer> ();
+			foreach (MeshRenderer meshRen in allMeshRenderer) {
+				meshRen.material = BadMat;
+			}
 			CreatingAllowed = false;
 		}
 	}
 
+	void OnDrawGizmosSelected () {
+		Gizmos.color = Color.white;
+		Gizmos.DrawWireSphere (transform.position, FireRangeMax);
+		Gizmos.DrawWireSphere (transform.position, FireRangeMin);
+	}
 }
