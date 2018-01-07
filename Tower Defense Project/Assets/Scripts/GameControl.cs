@@ -1,25 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class GameControl : MonoBehaviour {
 
-	public Text TextLives, TextGold, TextIncome;
+	public string PlayerName;
 	public int Lives, Gold, Income;
-	public float TimeIncome;
+	public float TimeIncome, TimerIncome;
 
-	float TimerIncome;
+
+	void Awake () {
+		DontDestroyOnLoad (transform.gameObject);
+	}
 
 	void Start () {
 		TimerIncome = TimeIncome;
 	}
 
-	void Update () {
-		TextLives.text = Lives.ToString ();
-		TextGold.text = Gold.ToString ();
-		TextIncome.text = Income.ToString ();
 
+	void Update () {
 		TimerIncome -= Time.deltaTime;
 		if (TimerIncome <= 0) {
 			Gold += Income;

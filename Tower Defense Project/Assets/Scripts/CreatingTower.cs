@@ -11,15 +11,17 @@ public class CreatingTower : MonoBehaviour, IPointerDownHandler {
 	public GameObject ObjectToBeCreated;
 	public Text TextCosts;
 	public int Costs;
+	public int BuildOffsetY;
 
 	GameControl gameControl;
+	GridScript gridScript;
 	GameObject preObject, createdObject;
-
 	bool creatingActive;
 	int counter;
 
 	void Start () {
-		gameControl = GameObject.Find ("GameControler").GetComponent<GameControl> ();
+		gameControl = GameObject.Find ("GameController").GetComponent<GameControl> ();
+		gridScript = GameObject.Find ("Grid").GetComponent<GridScript> ();
 	}
 
 	public void OnPointerDown (PointerEventData data) {
@@ -42,10 +44,11 @@ public class CreatingTower : MonoBehaviour, IPointerDownHandler {
 		if (creatingActive) {
 			if (!EventSystem.current.IsPointerOverGameObject ()) {
 				bool done = false;
-				Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+				Vector3 mousePos = new Vector3 (Input.mousePosition.x, Input.mousePosition.y + BuildOffsetY, 0f);
+				Ray ray = Camera.main.ScreenPointToRay(mousePos);
 				RaycastHit hit;
-				if (Physics.Raycast (ray, out hit, 9999, LayerMask.NameToLayer ("Enviroment"))) {
-					preObject.transform.position = hit.point;
+				if (Physics.Raycast (ray, out hit, 9999, LayerMask.NameToLayer("test"))) {
+					preObject.transform.position = gridScript.GetNearestPointOnGrid(hit.point);
 					preObject.SetActive (true);
 				} else {
 					preObject.SetActive (false);

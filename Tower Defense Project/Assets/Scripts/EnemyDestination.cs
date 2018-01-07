@@ -8,7 +8,7 @@ public class EnemyDestination : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		gameControl = GameObject.Find ("GameControler").GetComponent<GameControl> ();
+		gameControl = GameObject.Find ("GameController").GetComponent<GameControl> ();
 	}
 	
 	// Update is called once per frame

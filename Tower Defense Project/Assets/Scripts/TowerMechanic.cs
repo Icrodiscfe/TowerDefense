@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class TowerMechanic : MonoBehaviour {
 
@@ -10,6 +11,7 @@ public class TowerMechanic : MonoBehaviour {
 	public Material BadMat, GoodMat;
 	public Transform FirePoint;
 	public GameObject BulletPrefab;
+	public GameObject FireRangeCircle;
 
 
 	[Header("Attributes")]
@@ -17,12 +19,14 @@ public class TowerMechanic : MonoBehaviour {
 	public float FireRangeMax = 10f;
 	public float FireRangeMin = 2f;
 	public float FireRate = 1f;
+	public float BuildRange = 2f;
 
 	[Header("Scripting Interface")]
 	public bool CreatingModeActive;
 	public bool CreatingAllowed;
 
-	GameObject Target;
+
+	GameObject Target, objectMenuePanel;
 	bool targeted;
 	Quaternion partToRotateHorizontalIdle, partToRotateVerticalIdle;
 	float fireCooldown;
@@ -32,7 +36,7 @@ public class TowerMechanic : MonoBehaviour {
 		partToRotateHorizontalIdle = PartToRotateHorizontal.rotation;
 		partToRotateVerticalIdle = PartToRotateVertical.rotation;
 		anim = GetComponent<Animator> ();
-
+		objectMenuePanel = GameObject.Find ("GUI/Canvas/ObjectMenuePanel");
 	}
 
 
@@ -95,6 +99,19 @@ public class TowerMechanic : MonoBehaviour {
 			fireCooldown -= Time.deltaTime;
 		}
 
+		if (Input.GetKeyUp(KeyCode.Mouse0) && !CreatingModeActive && !EventSystem.current.IsPointerOverGameObject ()) {
+			Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+			RaycastHit mouseHit;
+			if (Physics.Raycast (mouseRay, out mouseHit, 9999)) {
+				if (mouseHit.collider.CompareTag ("Turret")) {
+					objectMenuePanel.SetActive (true);
+					var newPos = Camera.main.WorldToScreenPoint (mouseHit.collider.transform.Find("ObjectMenuePoint").transform.position);
+					RectTransform panel = objectMenuePanel.GetComponent<RectTransform>();;
+					newPos = new Vector3 (newPos.x + panel.sizeDelta.x / 2, newPos.y + 100 + panel.sizeDelta.x / 2, newPos.z);
+					objectMenuePanel.transform.position = newPos;
+				}
+			}
+		}
 	}
 
 	public GameObject FindClosestEnemy(float distance, string name)
@@ -137,7 +154,7 @@ public class TowerMechanic : MonoBehaviour {
 			iniCreatingModeDone = true;
 		}
 
-		if (creatingModeactive && FindClosestEnemy (2.5f, "Turret") == null) {
+		if (creatingModeactive && FindClosestEnemy (BuildRange, "Turret") == null) {
 			int x = 0;
 			MeshRenderer[] allMeshRenderer = transform.GetComponentsInChildren<MeshRenderer> ();
 			foreach (MeshRenderer meshRen in allMeshRenderer) {
@@ -147,18 +164,26 @@ public class TowerMechanic : MonoBehaviour {
 			CreatingAllowed = true;
 		}
 
-		if (creatingModeactive && FindClosestEnemy (2.5f, "Turret") != null) {
+		if (creatingModeactive && FindClosestEnemy (BuildRange, "Turret") != null) {
 			MeshRenderer[] allMeshRenderer = transform.GetComponentsInChildren<MeshRenderer> ();
 			foreach (MeshRenderer meshRen in allMeshRenderer) {
 				meshRen.material = BadMat;
 			}
 			CreatingAllowed = false;
 		}
+
+		FireRangeCircle.SetActive(creatingModeactive);
 	}
 
 	void OnDrawGizmosSelected () {
 		Gizmos.color = Color.white;
 		Gizmos.DrawWireSphere (transform.position, FireRangeMax);
 		Gizmos.DrawWireSphere (transform.position, FireRangeMin);
+		Gizmos.color = Color.red;
+		Gizmos.DrawWireSphere (transform.position, BuildRange);
+	}
+
+	public void Sell () {
+
 	}
 }

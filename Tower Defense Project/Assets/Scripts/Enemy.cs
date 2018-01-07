@@ -15,8 +15,15 @@ public class Enemy : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		gameControl = GameObject.Find ("GameControler").GetComponent<GameControl> ();
+		gameControl = GameObject.Find ("GameController").GetComponent<GameControl> ();
 		currentHealth = MaxHealth;
+
+		// Auto "Enemy" movement
+		if (!DisableAutoMovement && currentHealth > 0) {
+			NavMeshAgent agent = GetComponent<NavMeshAgent> ();
+			Vector3 destination = new Vector3 (transform.position.x, transform.position.y, transform.position.z + -40);
+			agent.destination = destination; 
+		}
 	}
 		
 	void Update () {
@@ -32,12 +39,7 @@ public class Enemy : MonoBehaviour {
 			gameControl.Gold += Bounty;
 		}
 
-		// Auto "Enemy" movement
-		if (!DisableAutoMovement && currentHealth > 0) {
-			NavMeshAgent agent = GetComponent<NavMeshAgent> ();
-			Vector3 destination = new Vector3 (transform.position.x, transform.position.y, transform.position.z + -5);
-			agent.destination = destination; 
-		}
+
 	}
 
 	public void GetDamage (float amount) {
