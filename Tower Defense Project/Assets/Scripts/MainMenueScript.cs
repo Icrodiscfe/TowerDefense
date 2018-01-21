@@ -15,7 +15,7 @@ public class MainMenueScript : MonoBehaviour {
 	void Start () {
 		gameControl = GameObject.Find ("GameController").GetComponent<GameControl> ();
 		if (gameControl.PlayerName != null)
-			InputPlayerName.text = gameControl.PlayerName;
+			InputPlayerName.text = PlayerPrefs.GetString ("PlayerName", "NoPlayername");
 	}
 	
 	// Update is called once per frame
@@ -28,6 +28,6 @@ public class MainMenueScript : MonoBehaviour {
 	}
 
 	public void InputFieldPlayerName (string name) {
-		gameControl.PlayerName = name;
+		PlayerPrefs.SetString ("PlayerName", name);
 	}
 }
