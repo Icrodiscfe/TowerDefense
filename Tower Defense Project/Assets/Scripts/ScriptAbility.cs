@@ -2,23 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using TMPro;
 
 public class ScriptAbility : MonoBehaviour {
-	[SerializeField]
-	TMP_Text AbilityName = null;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
+	public ScriptableObjectAbility Data;
+
+	public virtual void Start () {
+		Data.Start ();
 	}
 
-	public void SetAbilityName (string _name) {
-		AbilityName.text = _name;
+	public virtual void Update () {
+		Data.Update ();
 	}
 }

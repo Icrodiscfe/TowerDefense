@@ -9,19 +9,13 @@ public class ScriptButtonChangeManue : MonoBehaviour, IPointerUpHandler {
 	public RectTransform PabelToSetActive, PanelToSetInactive;
 
 	RectTransform PanelRectTransform;
-	// Use this for initialization
-	void Start () {
-		
-	}
-
-	// Update is called once per frame
-	void Update () {
-
-	}
 
 	public void OnPointerUp (PointerEventData data) {
-		PabelToSetActive.gameObject.SetActive (true);
-		PabelToSetActive.Translate (-PabelToSetActive.localPosition.x, -PabelToSetActive.localPosition.y, 0f);
-		PanelToSetInactive.gameObject.SetActive (false);
+		if (PabelToSetActive != null) {
+			PabelToSetActive.gameObject.SetActive (true);
+			PabelToSetActive.Translate (-PabelToSetActive.localPosition.x, -PabelToSetActive.localPosition.y, 0f);
+		}
+		if (PanelToSetInactive != null) 
+			PanelToSetInactive.gameObject.SetActive (false);
 	}
 }

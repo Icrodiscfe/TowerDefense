@@ -114,10 +114,10 @@ public class TowerMechanic : MonoBehaviour {
 		}
 	}
 
-	public GameObject FindClosestEnemy(float distance, string name)
+	public GameObject FindClosestEnemy(float _distance, string _tag)
 	{
 		GameObject[] gos;
-		gos = GameObject.FindGameObjectsWithTag(name);
+		gos = GameObject.FindGameObjectsWithTag(_tag);
 		GameObject closest = null;
 		Vector3 position = transform.position;
 		foreach (GameObject go in gos)
@@ -125,9 +125,9 @@ public class TowerMechanic : MonoBehaviour {
 			if (go != this.gameObject) {
 				Vector3 diff = go.transform.position - transform.position;
 				float curDistance = diff.magnitude;
-				if (curDistance < distance) {
+				if (curDistance < _distance) {
 					closest = go;
-					distance = curDistance;
+					_distance = curDistance;
 				}
 			}
 		}

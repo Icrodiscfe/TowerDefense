@@ -1,25 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System;
 
 public class ScriptPlayerManager : MonoBehaviour {
 
 	public Transform AbilitysPanel;
 	public GameObject AbilityPrefab;
-	public List<TempAbility> Abilitys;
+	public List<ScriptableObjectAbility> Abilitys;
+
+
 
 	// Use this for initialization
 	void Start () {
-		foreach (TempAbility Ability in Abilitys) {
-			Debug.Log(Ability.Name + " available: " + PlayerPrefs.HasKey (Ability.Name));
-			if (PlayerPrefs.HasKey (Ability.Name)) {
-				GameObject newAbility;
-				newAbility = Instantiate (AbilityPrefab, AbilitysPanel);
-				newAbility.GetComponent<ScriptAbility> ().SetAbilityName (Ability.Name);
-			}
-		}
-
+		IniAbilitys ();
 	}
 	
 	// Update is called once per frame
@@ -27,12 +21,22 @@ public class ScriptPlayerManager : MonoBehaviour {
 		
 	}
 
-	public void AddAbility (string Name) {
-		PlayerPrefs.SetInt (Name, 1);
+	void IniAbilitys () {
+		foreach (ScriptableObjectAbility Ability in Abilitys) {
+			if (Ability.Level > 0) {
+				Instantiate (AbilityPrefab, AbilitysPanel).GetComponent<ScriptAbilityPrefab> ().SetAbility (Ability);
+			}
+		}
 	}
 
-	[System.Serializable]
-	public class TempAbility {
-		public string Name;
+	public void ButtonAddAbilitys () {
+		foreach (ScriptableObjectAbility Ability in Abilitys) {
+			if (Ability.Level == 0) {
+				Ability.AddAbility ();
+				Instantiate (AbilityPrefab, AbilitysPanel).GetComponent<ScriptAbilityPrefab> ().SetAbility (Ability);
+			}
+		}
 	}
 }
+
+

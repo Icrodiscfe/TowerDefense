@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class AbbilitiesScrollView : MonoBehaviour {
 
 	public RectTransform Contect;
+	public RectTransform Ability;
 
 	// Use this for initialization
 	void Start () {
@@ -14,7 +15,7 @@ public class AbbilitiesScrollView : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
-		Contect.SetSizeWithCurrentAnchors (RectTransform.Axis.Vertical, 200f + 250f * transform.childCount);
+		Debug.Log (Ability.rect.height);
+		Contect.SetSizeWithCurrentAnchors (RectTransform.Axis.Vertical, (50f + Ability.rect.height) * transform.childCount);
 	}
 }
